@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mindstatz — Exclusive VR & Premium Content</title>
+  <meta name="description" content="Explore high-quality Ebony Foot Fetish VR videos in a modern and immersive experience, exclusively on Mindstatz.">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="stylesheet" href="styles.css">
+  <!-- A-Frame -->
+  <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
+</head>
+<body>
+
+<!-- Custom Cursor -->
+<div class="cursor"></div>
+<div class="cursor-follower"></div>
+
+<!-- Age Gate -->
+<div id="age-gate" class="age-gate">
+  <div class="age-gate-box">
+    <span class="section-label">Access Verification</span>
+    <div class="gold-line"></div>
+    <h2>Are you 18 or older?</h2>
+    <p>This website contains adult content intended for mature audiences only. You must be at least 18 years of age to enter.</p>
+    <div class="age-gate-actions">
+      <button id="age-yes" class="btn btn-gold">Yes, I am 18+</button>
+      <button id="age-no" class="btn btn-ghost">No, Exit</button>
+    </div>
+  </div>
+</div>
+
+<!-- Navigation -->
+<nav class="navbar">
+  <a href="index.html" class="nav-logo">Mindstatz</a>
+  <ul class="nav-links">
+    <li><a href="#home">Home</a></li>
+    <li><a href="#gallery">Gallery</a></li>
+    <li><a href="#vr-preview">VR Preview</a></li>
+    <li><a href="#contact">Contact</a></li>
+    <li><a href="admin.html" class="btn btn-outline" style="padding:0.45rem 1.2rem">Admin</a></li>
+  </ul>
+  <button class="burger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════════
+     HERO
+═══════════════════════════════════════════════════════════ -->
+<section id="home" class="hero">
+  <div class="hero-bg">
+    <video src="assets/featured-video.mp4" autoplay loop muted playsinline></video>
+    <div></div><!-- overlay via ::after -->
+  </div>
+  <div class="hero-content">
+    <div class="hero-eyebrow">Exclusive Adult Content</div>
+    <h1>Immerse Yourself<br>in <em>Pure Luxury</em></h1>
+    <p>Premium Ebony Foot Fetish content in stunning 360° VR. Curated for the discerning viewer.</p>
+    <div class="hero-actions">
+      <a href="#vr-preview" class="btn btn-gold">
+        <svg viewBox="0 0 24 24" style="width:16px;fill:currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+        Watch VR Preview
+      </a>
+      <a href="#gallery" class="btn btn-outline">Browse Gallery</a>
+    </div>
+  </div>
+  <div class="scroll-hint">
+    <div class="scroll-hint-line"></div>
+    <span>Scroll</span>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     GALLERY
+═══════════════════════════════════════════════════════════ -->
+<section id="gallery" class="section">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-label">Content Library</span>
+      <h2>Gallery</h2>
+      <div class="gold-line"></div>
+      <p>Preview select clips below. Unlock premium content for full access.</p>
+    </div>
+
+    <div class="gallery-grid">
+
+      <!-- FREE PREVIEW CLIP 1 -->
+      <div class="clip-card reveal" onclick="openPlayer('assets/video1.mp4', 'Velvet Twilight', false)">
+        <span class="clip-badge preview">Preview</span>
+        <video src="assets/video1.mp4" muted loop preload="none"></video>
+        <div class="play-btn-overlay">
+          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </div>
+        <div class="clip-overlay">
+          <div>
+            <div class="clip-title">Velvet Twilight</div>
+            <div class="clip-meta">2:30 · Free Preview</div>
+            <div class="clip-actions">
+              <button class="btn btn-gold" style="padding:0.4rem 1rem;font-size:0.62rem">Play</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FREE PREVIEW CLIP 2 -->
+      <div class="clip-card reveal" onclick="openPlayer('assets/video2.mp4', 'Obsidian Grace', false)">
+        <span class="clip-badge preview">Preview</span>
+        <video src="assets/video2.mp4" muted loop preload="none"></video>
+        <div class="play-btn-overlay">
+          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </div>
+        <div class="clip-overlay">
+          <div>
+            <div class="clip-title">Obsidian Grace</div>
+            <div class="clip-meta">3:10 · Free Preview</div>
+            <div class="clip-actions">
+              <button class="btn btn-gold" style="padding:0.4rem 1rem;font-size:0.62rem">Play</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LOCKED PREMIUM 1 -->
+      <div class="clip-card locked reveal" onclick="openPaywall()">
+        <span class="clip-badge locked">Premium</span>
+        <video src="assets/video3.mp4" muted loop preload="none"></video>
+        <div class="play-btn-overlay">
+          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </div>
+        <div class="lock-overlay">
+          <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+          <span>Members Only</span>
+        </div>
+        <div class="clip-overlay">
+          <div>
+            <div class="clip-title">Golden Hour</div>
+            <div class="clip-meta">12:45 · Premium</div>
+            <div class="clip-actions">
+              <button class="btn btn-violet" style="padding:0.4rem 1rem;font-size:0.62rem">Unlock</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LOCKED VR PREMIUM -->
+      <div class="clip-card locked reveal" onclick="openPaywall()">
+        <span class="clip-badge vr">VR 360°</span>
+        <span class="clip-badge locked" style="top:2.5rem">Premium</span>
+        <video src="assets/vr-thumb.mp4" muted loop preload="none"></video>
+        <div class="play-btn-overlay">
+          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </div>
+        <div class="lock-overlay">
+          <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+          <span>Members Only</span>
+        </div>
+        <div class="clip-overlay">
+          <div>
+            <div class="clip-title">Midnight Ritual</div>
+            <div class="clip-meta">18:20 · VR 360° · Premium</div>
+            <div class="clip-actions">
+              <button class="btn btn-violet" style="padding:0.4rem 1rem;font-size:0.62rem">Unlock</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LOCKED PREMIUM 2 -->
+      <div class="clip-card locked reveal" onclick="openPaywall()">
+        <span class="clip-badge locked">Premium</span>
+        <video src="assets/video5.mp4" muted loop preload="none"></video>
+        <div class="play-btn-overlay">
+          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </div>
+        <div class="lock-overlay">
+          <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+          <span>Members Only</span>
+        </div>
+        <div class="clip-overlay">
+          <div>
+            <div class="clip-title">Phantom Silk</div>
+            <div class="clip-meta">22:00 · Premium</div>
+            <div class="clip-actions">
+              <button class="btn btn-violet" style="padding:0.4rem 1rem;font-size:0.62rem">Unlock</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LOCKED PREMIUM 3 -->
+      <div class="clip-card locked reveal" onclick="openPaywall()">
+        <span class="clip-badge locked">Premium</span>
+        <video src="assets/video6.mp4" muted loop preload="none"></video>
+        <div class="play-btn-overlay">
+          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </div>
+        <div class="lock-overlay">
+          <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+          <span>Members Only</span>
+        </div>
+        <div class="clip-overlay">
+          <div>
+            <div class="clip-title">Abyssal Crown</div>
+            <div class="clip-meta">31:15 · Premium</div>
+            <div class="clip-actions">
+              <button class="btn btn-violet" style="padding:0.4rem 1rem;font-size:0.62rem">Unlock</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /gallery-grid -->
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     VR PREVIEW
+═══════════════════════════════════════════════════════════ -->
+<section id="vr-preview" class="section vr-section">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-label">Immersive Experience</span>
+      <h2>360° VR Preview</h2>
+      <div class="gold-line"></div>
+      <p>Put on a VR headset or use your device to explore our immersive content.</p>
+    </div>
+
+    <div class="vr-wrapper reveal">
+
+      <!-- Paywall Overlay -->
+      <div id="paywall-overlay">
+        <div class="paywall-box">
+          <div class="paywall-icon">
+            <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+          </div>
+          <span class="section-label">VR Experience</span>
+          <h3>Preview Locked</h3>
+          <p>Unlock this immersive 360° experience.<br>Free preview available with registration.</p>
+          <button class="btn btn-gold" onclick="unlockPreview()">Unlock Free Preview</button>
+          <button class="btn btn-violet" onclick="openPaywall()">Get Full Access</button>
+          <div class="paywall-note">🔒 Secure · Adult content · 18+ only</div>
+        </div>
+      </div>
+
+      <!-- A-Frame Scene -->
+      <a-scene
+        embedded
+        vr-mode-ui="enabled: true"
+        device-orientation-permission-ui="enabled: true"
+        renderer="colorManagement: true; antialias: true"
+        loading-screen="enabled: false">
+
+        <a-assets>
+          <video
+            id="preview-video"
+            src="assets/vr-preview.mp4"
+            preload="none"
+            loop
+            crossorigin="anonymous"
+            webkit-playsinline
+            playsinline>
+          </video>
+        </a-assets>
+
+        <!-- 360° Video Sphere -->
+        <a-videosphere
+          id="video-sphere"
+          src="#preview-video"
+          rotation="0 -90 0">
+        </a-videosphere>
+
+        <!-- Spatial Audio -->
+        <a-entity
+          id="spatial-audio"
+          sound="src: #preview-video; autoplay: false; loop: true; positional: true; distanceModel: inverse; refDistance: 2"
+          position="0 1.6 0">
+        </a-entity>
+
+        <!-- Camera with gaze cursor -->
+        <a-camera
+          position="0 1.6 0"
+          look-controls="gyroEnabled: true; touchEnabled: true"
+          wasd-controls-enabled="false">
+          <a-cursor
+            color="#c9a84c"
+            opacity="0.8"
+            scale="0.5 0.5 0.5"
+            rayOrigin="mouse"
+            fuse="false">
+          </a-cursor>
+        </a-camera>
+
+        <!-- Floating VR UI Panel -->
+        <a-entity id="ui-panel" position="0 0.8 -2.2">
+          <a-plane width="2.2" height="0.55" color="#0e0e0f" opacity="0.9" corner-radius="0.06"></a-plane>
+
+          <!-- Play/Pause -->
+          <a-text
+            value="⏯"
+            position="-0.8 0 0.02"
+            color="#c9a84c"
+            font="mozillavr"
+            width="3"
+            align="center"
+            class="clickable"
+            onclick="toggleVideo()">
+          </a-text>
+
+          <!-- Mute -->
+          <a-text
+            value="🔊"
+            position="-0.27 0 0.02"
+            color="#9b68d4"
+            font="mozillavr"
+            width="3"
+            align="center"
+            class="clickable"
+            onclick="toggleMute()">
+          </a-text>
+
+          <!-- Recenter -->
+          <a-text
+            value="⟳"
+            position="0.27 0 0.02"
+            color="#c9a84c"
+            font="mozillavr"
+            width="3"
+            align="center"
+            class="clickable"
+            onclick="recenterView()">
+          </a-text>
+
+          <!-- Fullscreen -->
+          <a-text
+            value="⛶"
+            position="0.8 0 0.02"
+            color="#998e7a"
+            font="mozillavr"
+            width="3"
+            align="center"
+            class="clickable"
+            onclick="enterVRFullscreen()">
+          </a-text>
+        </a-entity>
+
+      </a-scene>
+    </div><!-- /vr-wrapper -->
+
+    <p style="text-align:center;margin-top:1.5rem;font-size:0.72rem;letter-spacing:0.1em;color:var(--text-muted)">
+      Works best with a VR headset · Also compatible with mobile gyroscope
+    </p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     VIDEO PLAYER (Standard 2D)
+═══════════════════════════════════════════════════════════ -->
+<section id="player" class="section" style="display:none">
+  <div class="container" style="max-width:900px">
+    <div class="section-header reveal">
+      <span class="section-label">Now Playing</span>
+      <h2 id="player-title">—</h2>
+      <div class="gold-line"></div>
+    </div>
+    <div class="player-wrap reveal">
+      <video id="main-video" src="" preload="metadata" playsinline></video>
+      <div class="custom-controls">
+        <div class="progress-bar" id="progress-bar">
+          <div class="progress-fill"></div>
+        </div>
+        <div class="controls-row">
+          <button class="ctrl-btn" id="ctrl-play">
+            <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          </button>
+          <button class="ctrl-btn" id="ctrl-mute">
+            <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0014 7.97v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
+          </button>
+          <input type="range" class="volume-slider" id="vol-slider" min="0" max="1" step="0.05" value="1">
+          <span class="time-display">0:00 / 0:00</span>
+          <button class="ctrl-btn" id="ctrl-fs" style="margin-left:auto">
+            <svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:1.5rem">
+      <button class="btn btn-ghost" onclick="closePlayer()">← Back to Gallery</button>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     PAYWALL MODAL
+═══════════════════════════════════════════════════════════ -->
+<div id="paywall-modal" style="
+  display:none; position:fixed; inset:0; z-index:9990;
+  background:rgba(8,8,8,0.92); backdrop-filter:blur(16px);
+  align-items:center; justify-content:center;
+">
+  <div class="paywall-box" style="border:1px solid var(--border);border-radius:var(--radius-lg);max-width:440px">
+    <div class="paywall-icon">
+      <svg viewBox="0 0 24 24" fill="var(--violet-light)"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+    </div>
+    <span class="section-label">Members Only</span>
+    <h3>Full Access Required</h3>
+    <p style="margin-bottom:2rem">This content is exclusive to Mindstatz members. Join to unlock unlimited premium and VR content.</p>
+    <button class="btn btn-gold" style="width:100%;justify-content:center;margin-bottom:0.75rem" onclick="closePaywallModal()">
+      Get Membership
+    </button>
+    <button class="btn btn-ghost" style="width:100%;justify-content:center" onclick="closePaywallModal()">
+      Maybe Later
+    </button>
+    <div class="paywall-note" style="margin-top:1rem">🔒 Secure checkout · Cancel anytime</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     CONTACT
+═══════════════════════════════════════════════════════════ -->
+<section id="contact" class="section">
+  <div class="container" style="max-width:760px">
+    <div class="section-header reveal">
+      <span class="section-label">Get In Touch</span>
+      <h2>Contact Us</h2>
+      <div class="gold-line"></div>
+      <p>Questions, custom requests, or business inquiries — we'd love to hear from you.</p>
+    </div>
+    <form class="contact-form reveal" action="mailto:contact@mindstatz.com" method="post" enctype="text/plain">
+      <div class="admin-grid-2">
+        <div class="form-group">
+          <input type="text" name="name" placeholder="Your Name" required>
+        </div>
+        <div class="form-group">
+          <input type="email" name="email" placeholder="Your Email" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <input type="text" name="subject" placeholder="Subject">
+      </div>
+      <div class="form-group">
+        <textarea name="message" placeholder="Your message…" required></textarea>
+      </div>
+      <button type="submit" class="btn btn-gold" style="width:100%;justify-content:center">Send Message</button>
+    </form>
+  </div>
+</section>
+
+<!-- Admin Login (inline, on same page) -->
+<section id="admin-login" class="section" style="padding:4rem">
+  <div class="container" style="max-width:440px;margin:0 auto">
+    <div class="admin-login-box">
+      <div style="text-align:center;margin-bottom:2rem">
+        <span class="nav-logo" style="font-size:1.5rem">Mindstatz</span>
+        <div class="gold-line"></div>
+        <span class="section-label">Admin Access</span>
+        <h3>Sign In</h3>
+      </div>
+      <form onsubmit="adminLogin(event)">
+        <div class="form-group">
+          <input type="text" id="admin-user" class="admin-input" placeholder="Username" required autocomplete="username">
+        </div>
+        <div class="form-group">
+          <input type="password" id="admin-pass" class="admin-input" placeholder="Password" required autocomplete="current-password">
+        </div>
+        <div id="login-error" style="display:none;color:#d44;font-size:0.75rem;margin-bottom:0.75rem;letter-spacing:0.05em"></div>
+        <button type="submit" class="btn btn-gold" style="width:100%;justify-content:center">Enter Dashboard</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-logo">Mindstatz</div>
+  <p>© 2024 Mindstatz. All rights reserved. 18+ only.</p>
+  <ul class="footer-links">
+    <li><a href="#">Privacy</a></li>
+    <li><a href="#">Terms</a></li>
+    <li><a href="#contact">Contact</a></li>
+    <li><a href="https://www.asacp.org" target="_blank" rel="noopener">ASACP</a></li>
+  </ul>
+</footer>
+
+<script src="app.js"></script>
+<script>
+  // Page-level helpers
+  function openPlayer(src, title, isPremium) {
+    if (isPremium) { openPaywall(); return; }
+    const section = document.getElementById('player');
+    const video   = document.getElementById('main-video');
+    const titleEl = document.getElementById('player-title');
+    if (!section || !video) return;
+    video.src    = src;
+    titleEl.textContent = title;
+    section.style.display = 'block';
+    section.scrollIntoView({ behavior: 'smooth' });
+    video.play().catch(() => {});
+  }
+
+  function closePlayer() {
+    const section = document.getElementById('player');
+    const video   = document.getElementById('main-video');
+    if (video) video.pause();
+    if (section) section.style.display = 'none';
+    document.getElementById('gallery').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function openPaywall() {
+    const modal = document.getElementById('paywall-modal');
+    if (modal) modal.style.display = 'flex';
+  }
+
+  function closePaywallModal() {
+    const modal = document.getElementById('paywall-modal');
+    if (modal) modal.style.display = 'none';
+  }
+
+  function enterVRFullscreen() {
+    const scene = document.querySelector('a-scene');
+    scene?.requestFullscreen?.() || scene?.webkitRequestFullscreen?.();
+  }
+
+  // Close paywall modal on backdrop click
+  document.getElementById('paywall-modal')?.addEventListener('click', function(e) {
+    if (e.target === this) closePaywallModal();
+  });
+
+  // Shake keyframe
+  const style = document.createElement('style');
+  style.textContent = `@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}.shake{animation:shake 0.45s ease;}`;
+  document.head.appendChild(style);
+</script>
+</body>
+</html>

@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mindstatz — Admin Dashboard</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Admin-only extras */
+    body { cursor: default; }
+    .cursor, .cursor-follower { display: none; }
+
+    .admin-panel { display: none; }
+    .admin-panel.visible { display: grid; }
+
+    .progress-upload {
+      height: 3px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 2px;
+      margin-top: 0.75rem;
+      overflow: hidden;
+    }
+    .progress-upload-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--violet), var(--gold));
+      width: 0%;
+      transition: width 0.4s ease;
+    }
+
+    .bg-preview-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.75rem;
+      margin-top: 0.75rem;
+    }
+    .bg-option {
+      height: 60px;
+      border-radius: var(--radius-sm);
+      border: 2px solid var(--border);
+      cursor: pointer;
+      transition: var(--transition-fast);
+      position: relative;
+      overflow: hidden;
+    }
+    .bg-option:hover, .bg-option.active {
+      border-color: var(--gold);
+      transform: scale(1.04);
+    }
+    .bg-option span {
+      position: absolute;
+      bottom: 4px; left: 0; right: 0;
+      text-align: center;
+      font-size: 0.6rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.6);
+    }
+
+    .select-input {
+      width: 100%;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0.75rem 1rem;
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      font-size: 0.82rem;
+      outline: none;
+      margin-bottom: 0.75rem;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23998e7a'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.75rem center;
+      background-size: 18px;
+    }
+    .select-input:focus { border-color: var(--gold-dim); }
+
+    @keyframes shake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-8px)} 40%,80%{transform:translateX(8px)} }
+    .shake { animation: shake 0.45s ease; }
+
+    /* Mobile admin topbar */
+    .admin-mobile-bar {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.5rem;
+      background: var(--bg-deep);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    @media (max-width: 768px) {
+      .admin-mobile-bar { display: flex; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="admin-login-screen" class="admin-login-screen">
+  <div class="admin-login-box">
+    <div style="text-align:center;margin-bottom:2.5rem">
+      <div class="nav-logo" style="font-size:1.8rem;display:block;margin-bottom:0.5rem">Mindstatz</div>
+      <div class="gold-line"></div>
+      <span class="section-label">Admin Dashboard</span>
+    </div>
+    <form onsubmit="handleAdminLogin(event)">
+      <label class="admin-label">Username</label>
+      <input type="text" id="login-user" class="admin-input" placeholder="Enter username" autocomplete="username" required>
+      <label class="admin-label">Password</label>
+      <input type="password" id="login-pass" class="admin-input" placeholder="Enter password" autocomplete="current-password" required>
+      <div id="login-error" style="display:none;color:#d44;font-size:0.72rem;margin-bottom:0.75rem;letter-spacing:0.05em;text-align:center"></div>
+      <button type="submit" class="btn btn-gold" style="width:100%;justify-content:center;margin-top:0.5rem">
+        Sign In
+      </button>
+    </form>
+    <div style="text-align:center;margin-top:1.5rem">
+      <a href="index.html" style="font-size:0.68rem;color:var(--text-muted);letter-spacing:0.1em;text-transform:uppercase">
+        ← Return to Site
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div id="admin-panel" class="admin-panel admin-layout">
+
+  <!-- Sidebar -->
+  <aside class="admin-sidebar">
+    <div class="admin-sidebar-logo">
+      <div class="nav-logo" style="font-size:1.4rem">Mindstatz</div>
+      <div style="font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-muted);margin-top:0.25rem">Admin Dashboard</div>
+    </div>
+
+    <nav>
+      <a href="#" class="admin-nav-item active" data-section="overview" onclick="showSection('overview',this)">
+        <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+        Overview
+      </a>
+      <a href="#" class="admin-nav-item" data-section="upload" onclick="showSection('upload',this)">
+        <svg viewBox="0 0 24 24"><path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/></svg>
+        Upload Videos
+      </a>
+      <a href="#" class="admin-nav-item" data-section="library" onclick="showSection('library',this)">
+        <svg viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 9h-3v3h-2v-3H9V9h3V6h2v3h3v2z"/></svg>
+        Video Library
+      </a>
+      <a href="#" class="admin-nav-item" data-section="theme" onclick="showSection('theme',this)">
+        <svg viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+        Theme & Colors
+      </a>
+      <a href="#" class="admin-nav-item" data-section="flags" onclick="showSection('flags',this)">
+        <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+        Site Flags
+      </a>
+    </nav>
+
+    <div style="position:absolute;bottom:1.5rem;left:0;right:0;padding:0 1.75rem">
+      <button class="btn btn-ghost" style="width:100%;justify-content:center;font-size:0.65rem" onclick="adminLogout()">
+        <svg viewBox="0 0 24 24" style="width:14px;fill:currentColor"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
+        Log Out
+      </button>
+      <div style="text-align:center;margin-top:1rem">
+        <a href="index.html" style="font-size:0.62rem;color:var(--text-muted);letter-spacing:0.1em;text-transform:uppercase">← View Site</a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="admin-main">
+
+    <!-- Mobile bar -->
+    <div class="admin-mobile-bar">
+      <span class="nav-logo" style="font-size:1.2rem">Mindstatz Admin</span>
+      <button class="btn btn-ghost" style="padding:0.4rem 0.8rem;font-size:0.65rem" onclick="adminLogout()">Logout</button>
+    </div>
+
+    <div class="admin-topbar">
+      <div>
+        <h3 id="section-title" style="font-size:1.6rem;margin-bottom:0.25rem">Overview</h3>
+        <p style="font-size:0.72rem;color:var(--text-muted)">Welcome back, Administrator</p>
+      </div>
+      <div style="display:flex;gap:0.75rem;align-items:center">
+        <span id="admin-time" style="font-size:0.7rem;color:var(--text-muted)"></span>
+        <a href="index.html" class="btn btn-outline" style="padding:0.5rem 1.2rem;font-size:0.65rem">View Site ↗</a>
+      </div>
+    </div>
+
+    <!-- ── OVERVIEW ───────────────────────────────────── -->
+    <div id="sec-overview" class="admin-section">
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-val" id="stat-videos">0</div>
+          <div class="stat-label">Total Videos</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="stat-vr">0</div>
+          <div class="stat-label">VR Videos</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="stat-premium">0</div>
+          <div class="stat-label">Premium</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="stat-free">0</div>
+          <div class="stat-label">Free Previews</div>
+        </div>
+      </div>
+
+      <div class="admin-card">
+        <h3>
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+          Quick Start
+        </h3>
+        <p style="margin-bottom:1.25rem">Use the sidebar to manage your content and customize the site appearance.</p>
+        <div style="display:flex;gap:0.75rem;flex-wrap:wrap">
+          <button class="btn btn-gold" onclick="showSection('upload', document.querySelector('[data-section=upload]'))">
+            Upload a Video
+          </button>
+          <button class="btn btn-outline" onclick="showSection('theme', document.querySelector('[data-section=theme]'))">
+            Customize Theme
+          </button>
+          <button class="btn btn-ghost" onclick="showSection('flags', document.querySelector('[data-section=flags]'))">
+            Manage Flags
+          </button>
+        </div>
+      </div>
+
+      <div class="admin-card">
+        <h3>
+          <svg viewBox="0 0 24 24"><path d="M13 2.05v2.02c3.95.49 7 3.85 7 7.93 0 3.21-1.81 6-4.72 7.28L13 17v5h5l-1.22-1.22C19.91 19.07 22 15.76 22 12c0-5.18-3.95-9.45-9-9.95zM11 2.05C5.95 2.55 2 6.82 2 12c0 3.76 2.09 7.07 5.22 8.78L6 22h5V2.05z"/></svg>
+          Recent Uploads
+        </h3>
+        <div id="recent-uploads-list">
+          <p style="color:var(--text-muted);font-size:0.8rem">No videos yet. Upload your first video.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── UPLOAD ──────────────────────────────────────── -->
+    <div id="sec-upload" class="admin-section" style="display:none">
+      <div class="admin-card">
+        <h3>
+          <svg viewBox="0 0 24 24"><path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/></svg>
+          Add New Video
+        </h3>
+        <form id="upload-form">
+          <div class="admin-grid-2">
+            <div>
+              <label class="admin-label">Video Title *</label>
+              <input type="text" id="up-title" class="admin-input" placeholder="e.g. Velvet Twilight Vol. 2" required>
+            </div>
+            <div>
+              <label class="admin-label">Video Type *</label>
+              <select id="up-type" class="select-input">
+                <option value="regular">Regular (2D)</option>
+                <option value="vr">VR 360°</option>
+              </select>
+            </div>
+          </div>
+          <div class="admin-grid-2">
+            <div>
+              <label class="admin-label">Access Level *</label>
+              <select id="up-access" class="select-input">
+                <option value="free">Free Preview</option>
+                <option value="premium">Premium (Locked)</option>
+              </select>
+            </div>
+            <div>
+              <label class="admin-label">Duration</label>
+              <input type="text" id="up-duration" class="admin-input" placeholder="e.g. 12:45">
+            </div>
+          </div>
+          <label class="admin-label">Video URL or Embed Link *</label>
+          <input type="url" id="up-url" class="admin-input" placeholder="https://… or relative path like assets/video.mp4" required>
+          <label class="admin-label">Thumbnail URL</label>
+          <input type="url" id="up-thumb" class="admin-input" placeholder="https://… or assets/thumb.jpg">
+          <label class="admin-label">Description</label>
+          <textarea id="up-desc" class="admin-input" placeholder="Short description for this video…" style="min-height:90px;resize:vertical"></textarea>
+          <div class="progress-upload" id="upload-progress" style="display:none">
+            <div class="progress-upload-fill" id="upload-progress-fill"></div>
+          </div>
+          <button type="submit" class="btn btn-gold" style="margin-top:0.5rem">
+            <svg viewBox="0 0 24 24" style="width:15px;fill:currentColor"><path d="M9 16h6v-6h4l-7-7-7 7h4z"/></svg>
+            Add Video to Library
+          </button>
+        </form>
+      </div>
+
+      <!-- URL Embed Helper -->
+      <div class="admin-card">
+        <h3>
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+          URL Guide
+        </h3>
+        <p style="font-size:0.82rem;margin-bottom:1rem">Since this runs on GitHub Pages (static hosting), videos need to be accessible via URL:</p>
+        <div style="display:grid;gap:0.75rem">
+          <div style="background:var(--bg-surface);border-radius:var(--radius-sm);padding:1rem;border:1px solid var(--border)">
+            <div style="font-size:0.65rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold);margin-bottom:0.4rem">Option A — Relative Path</div>
+            <code style="font-size:0.78rem;color:var(--text-secondary)">assets/my-video.mp4</code>
+            <p style="font-size:0.75rem;margin-top:0.4rem">Upload the file to your repo's <code style="background:var(--bg-elevated);padding:0.1rem 0.4rem;border-radius:3px">assets/</code> folder. Best for small files (&lt;100MB).</p>
+          </div>
+          <div style="background:var(--bg-surface);border-radius:var(--radius-sm);padding:1rem;border:1px solid var(--border)">
+            <div style="font-size:0.65rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold);margin-bottom:0.4rem">Option B — External CDN</div>
+            <code style="font-size:0.78rem;color:var(--text-secondary)">https://cdn.example.com/video.mp4</code>
+            <p style="font-size:0.75rem;margin-top:0.4rem">Host on Cloudinary, Bunny.net, Vimeo, or any CDN. Recommended for large/HD files. Must allow CORS.</p>
+          </div>
+          <div style="background:var(--bg-surface);border-radius:var(--radius-sm);padding:1rem;border:1px solid var(--border)">
+            <div style="font-size:0.65rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--violet-light);margin-bottom:0.4rem">Option C — Git LFS</div>
+            <code style="font-size:0.78rem;color:var(--text-secondary)">assets/video-lfs.mp4</code>
+            <p style="font-size:0.75rem;margin-top:0.4rem">Enable Git Large File Storage in your repo for files up to 2GB on GitHub.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── VIDEO LIBRARY ──────────────────────────────── -->
+    <div id="sec-library" class="admin-section" style="display:none">
+      <div class="admin-card">
+        <h3>
+          <svg viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+          Manage Videos
+        </h3>
+        <div style="overflow-x:auto">
+          <table class="video-table">
+            <thead>
+              <tr>
+                <th>Thumb</th>
+                <th>Title</th>
+                <th>Type</th>
+                <th>Access</th>
+                <th>Added</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="video-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── THEME & COLORS ─────────────────────────────── -->
+    <div id="sec-theme" class="admin-section" style="display:none">
+
+      <div class="admin-card">
+        <h3>
+          <svg viewBox="0 0 24 24"><path d="M17.66 7.93L12 2.27 6.34 7.93c-3.12 3.12-3.12 8.19 0 11.31C7.9 20.8 9.95 21.58 12 21.58c2.05 0 4.1-.78 5.66-2.34 3.12-3.12 3.12-8.19 0-11.31z"/></svg>
+          Accent Color
+        </h3>
+        <p style="font-size:0.8rem;margin-bottom:1rem">Choose the primary accent color used across the site.</p>
+        <div class="color-swatch-grid">
+          <div class="color-swatch" data-color="#c9a84c" style="background:#c9a84c" title="Gold"></div>
+          <div class="color-swatch" data-color="#e2c97e" style="background:#e2c97e" title="Light Gold"></div>
+          <div class="color-swatch" data-color="#9b68d4" style="background:#9b68d4" title="Violet"></div>
+          <div class="color-swatch" data-color="#d4684f" style="background:#d4684f" title="Ruby"></div>
+          <div class="color-swatch" data-color="#4fa8d4" style="background:#4fa8d4" title="Sapphire"></div>
+          <div class="color-swatch" data-color="#4fd48a" style="background:#4fd48a" title="Emerald"></div>
+          <div class="color-swatch" data-color="#d44f9b" style="background:#d44f9b" title="Rose"></div>
+          <div class="color-swatch" data-color="#ffffff" style="background:#ffffff;border-color:rgba(255,255,255,0.3)" title="White"></div>
+        </div>
+
+        <div style="margin-top:1.5rem">
+          <label class="admin-label">Custom Hex Color</label>
+          <div style="display:flex;gap:0.75rem;align-items:center">
+            <input type="color" id="custom-color-picker" style="
+              width:44px;height:44px;border:none;background:none;cursor:pointer;padding:0;border-radius:4px;
+            " value="#c9a84c">
+            <input type="text" id="custom-color-input" class="admin-input" style="margin:0;max-width:140px" placeholder="#c9a84c">
+            <button class="btn btn-outline" style="padding:0.5rem 1rem;font-size:0.65rem" onclick="applyCustomColor()">Apply</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="admin-card">
+        <h3>
+          <svg viewBox="0 0 24 24"><path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14z"/></svg>
+          Background Style
+        </h3>
+        <p style="font-size:0.8rem;margin-bottom:1rem">Choose the overall background atmosphere of the site.</p>
+        <div class="bg-preview-grid">
+          <div class="bg-option active" data-bg="void" onclick="selectBg('void',this)" style="background:#080808">
+            <span>Void</span>
+          </div>
+          <div class="bg-option" data-bg="velvet" onclick="selectBg('velvet',this)" style="background:radial-gradient(ellipse at center,#2a0a3e,#080808)">
+            <span>Velvet</span>
+          </div>
+          <div class="bg-option" data-bg="cosmic" onclick="selectBg('cosmic',this)" style="background:radial-gradient(ellipse at top,#0a1628,#080808)">
+            <span>Cosmic</span>
+          </div>
+          <div class="bg-option" data-bg="noir" onclick="selectBg('noir',this)" style="background:linear-gradient(135deg,#111,#1a1410)">
+            <span>Noir</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="admin-card">
+        <h3>
+          <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+          Hero Text
+        </h3>
+        <label class="admin-label">Headline</label>
+        <input type="text" id="hero-headline" class="admin-input" placeholder="Immerse Yourself in Pure Luxury" value="">
+        <label class="admin-label">Subheadline</label>
+        <input type="text" id="hero-sub" class="admin-input" placeholder="Premium content description…">
+        <button class="btn btn-gold" style="margin-top:0.5rem" onclick="saveHeroText()">
+          Save Hero Text
+        </button>
+        <p style="font-size:0.72rem;color:var(--text-muted);margin-top:0.75rem">Changes are saved to localStorage and reflected on next page load.</p>
+      </div>
+    </div>
+
+    <!-- ── SITE FLAGS ──────────────────────────────────── -->
+    <div id="sec-flags" class="admin-section" style="display:none">
+      <div class="admin-card">
+        <h3>
+          <svg viewBox="0 0 24 24"><path d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z"/></svg>
+          Feature Flags
+        </h3>
+        <div>
+
+          <div class="toggle-row">
+            <span class="toggle-label">
+              <strong style="color:var(--text-primary)">Paywall Enabled</strong><br>
+              <span style="font-size:0.72rem">Locks VR preview behind the paywall overlay.</span>
+            </span>
+            <label class="toggle">
+              <input type="checkbox" class="admin-toggle-input" data-flag="paywallEnabled">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="toggle-row">
+            <span class="toggle-label">
+              <strong style="color:var(--text-primary)">VR UI Controls</strong><br>
+              <span style="font-size:0.72rem">Show floating play/mute/recenter buttons in VR scene.</span>
+            </span>
+            <label class="toggle">
+              <input type="checkbox" class="admin-toggle-input" data-flag="uiControls">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="toggle-row">
+            <span class="toggle-label">
+              <strong style="color:var(--text-primary)">Spatial Audio</strong><br>
+              <span style="font-size:0.72rem">Enable positional 3D audio in the VR experience.</span>
+            </span>
+            <label class="toggle">
+              <input type="checkbox" class="admin-toggle-input" data-flag="spatialAudio">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="toggle-row">
+            <span class="toggle-label">
+              <strong style="color:var(--text-primary)">iOS Autoplay Tweaks</strong><br>
+              <span style="font-size:0.72rem">Enable first-tap autoplay unlock for iOS devices.</span>
+            </span>
+            <label class="toggle">
+              <input type="checkbox" class="admin-toggle-input" data-flag="iosTweaks">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="admin-card">
+        <h3>
+          <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+          Admin Credentials
+        </h3>
+        <p style="font-size:0.8rem;margin-bottom:1.25rem">Update the admin login password. Changes are saved locally.</p>
+        <label class="admin-label">New Username</label>
+        <input type="text" id="new-username" class="admin-input" placeholder="admin">
+        <label class="admin-label">New Password</label>
+        <input type="password" id="new-password" class="admin-input" placeholder="New password">
+        <label class="admin-label">Confirm Password</label>
+        <input type="password" id="confirm-password" class="admin-input" placeholder="Confirm new password">
+        <div id="pw-message" style="font-size:0.72rem;margin-bottom:0.75rem;display:none"></div>
+        <button class="btn btn-outline" onclick="updateCredentials()">Update Credentials</button>
+        <p style="font-size:0.68rem;color:var(--text-muted);margin-top:0.75rem">
+          ⚠️ For production, replace JS auth with a proper server-side system.
+        </p>
+      </div>
+
+      <div class="admin-card">
+        <h3>
+          <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+          Reset / Danger Zone
+        </h3>
+        <div style="display:flex;gap:0.75rem;flex-wrap:wrap">
+          <button class="btn btn-ghost" onclick="resetFlags()">Reset Feature Flags</button>
+          <button class="btn btn-ghost" style="border-color:rgba(200,60,60,0.4);color:#d47" onclick="clearLibrary()">Clear Video Library</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div><!-- /admin-panel -->
+
+<script src="app.js"></script>
+<script>
+  /* ── Admin Page Init ── */
+  const ADMIN_CREDS_KEY = 'adminCredentials';
+  let storedCreds = JSON.parse(localStorage.getItem(ADMIN_CREDS_KEY)) || { username: 'admin', password: 'mindstatz2024' };
+
+  function handleAdminLogin(e) {
+    e.preventDefault();
+    const u = document.getElementById('login-user').value;
+    const p = document.getElementById('login-pass').value;
+    if (u === storedCreds.username && p === storedCreds.password) {
+      localStorage.setItem('adminAuthed', 'true');
+      document.getElementById('admin-login-screen').style.display = 'none';
+      document.getElementById('admin-panel').classList.add('visible');
+      initAdminPage();
+    } else {
+      const err = document.getElementById('login-error');
+      err.textContent = 'Invalid username or password.';
+      err.style.display = 'block';
+      const box = document.querySelector('.admin-login-box');
+      box.classList.add('shake');
+      setTimeout(() => box.classList.remove('shake'), 500);
+    }
+  }
+
+  function adminLogout() {
+    localStorage.removeItem('adminAuthed');
+    location.reload();
+  }
+
+  function initAdminPage() {
+    updateStats();
+    updateClock();
+    setInterval(updateClock, 1000);
+    applyFlags();
+    initThemeControls();
+    renderVideoTable();
+    initUploadForm();
+    renderRecentUploads();
+    syncToggleUI();
+
+    // Restore saved bg option
+    const saved = adminFlags.bgStyle || 'void';
+    document.querySelectorAll('.bg-option').forEach(o => {
+      o.classList.toggle('active', o.dataset.bg === saved);
+    });
+
+    // Color picker sync
+    const cp = document.getElementById('custom-color-picker');
+    const ci = document.getElementById('custom-color-input');
+    if (cp && ci) {
+      cp.value = adminFlags.accentColor || '#c9a84c';
+      ci.value = adminFlags.accentColor || '#c9a84c';
+      cp.addEventListener('input', () => { ci.value = cp.value; });
+    }
+  }
+
+  // Auto-login if already authed
+  if (localStorage.getItem('adminAuthed') === 'true') {
+    document.getElementById('admin-login-screen').style.display = 'none';
+    document.getElementById('admin-panel').classList.add('visible');
+    document.addEventListener('DOMContentLoaded', initAdminPage);
+  }
+
+  function showSection(name, el) {
+    document.querySelectorAll('.admin-section').forEach(s => s.style.display = 'none');
+    document.getElementById('sec-' + name).style.display = 'block';
+    document.querySelectorAll('.admin-nav-item').forEach(a => a.classList.remove('active'));
+    if (el) el.classList.add('active');
+    const titles = { overview: 'Overview', upload: 'Upload Videos', library: 'Video Library', theme: 'Theme & Colors', flags: 'Site Flags' };
+    document.getElementById('section-title').textContent = titles[name] || name;
+    return false;
+  }
+
+  function updateStats() {
+    const lib = getVideoLibrary();
+    document.getElementById('stat-videos').textContent  = lib.length;
+    document.getElementById('stat-vr').textContent      = lib.filter(v => v.type === 'vr').length;
+    document.getElementById('stat-premium').textContent = lib.filter(v => v.access === 'premium').length;
+    document.getElementById('stat-free').textContent    = lib.filter(v => v.access === 'free').length;
+  }
+
+  function updateClock() {
+    const el = document.getElementById('admin-time');
+    if (el) el.textContent = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function renderRecentUploads() {
+    const el = document.getElementById('recent-uploads-list');
+    if (!el) return;
+    const lib = getVideoLibrary().slice(0, 4);
+    if (!lib.length) { el.innerHTML = '<p style="color:var(--text-muted);font-size:0.8rem">No videos yet.</p>'; return; }
+    el.innerHTML = lib.map(v => `
+      <div style="display:flex;align-items:center;gap:1rem;padding:0.6rem 0;border-bottom:1px solid var(--border)">
+        <div style="width:40px;height:28px;background:var(--bg-elevated);border-radius:4px;flex-shrink:0"></div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:0.82rem;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(v.title)}</div>
+          <div style="font-size:0.65rem;color:var(--text-muted);letter-spacing:0.08em;text-transform:uppercase">${v.type} · ${v.access}</div>
+        </div>
+        <span class="clip-badge ${v.access}" style="flex-shrink:0">${v.access}</span>
+      </div>
+    `).join('');
+    updateStats();
+  }
+
+  function selectBg(style, el) {
+    document.querySelectorAll('.bg-option').forEach(o => o.classList.remove('active'));
+    el.classList.add('active');
+    adminFlags.bgStyle = style;
+    saveFlags();
+    applyBgStyle(style);
+  }
+
+  function applyCustomColor() {
+    const cp = document.getElementById('custom-color-picker');
+    const ci = document.getElementById('custom-color-input');
+    const color = ci.value || cp.value;
+    if (!color.match(/^#[0-9a-fA-F]{3,6}$/)) {
+      showToast('Enter a valid hex color like #d4a853', 'error');
+      return;
+    }
+    adminFlags.accentColor = color;
+    saveFlags();
+    applyFlags();
+    showToast('Accent color updated!');
+  }
+
+  function saveHeroText() {
+    const h = document.getElementById('hero-headline').value;
+    const s = document.getElementById('hero-sub').value;
+    localStorage.setItem('heroHeadline', h);
+    localStorage.setItem('heroSub', s);
+    showToast('Hero text saved! Reflected on next site load.');
+  }
+
+  function syncToggleUI() {
+    document.querySelectorAll('.admin-toggle-input').forEach(input => {
+      const flag = input.dataset.flag;
+      if (flag !== undefined) input.checked = !!adminFlags[flag];
+    });
+  }
+
+  function updateCredentials() {
+    const u  = document.getElementById('new-username').value.trim();
+    const p  = document.getElementById('new-password').value;
+    const cp = document.getElementById('confirm-password').value;
+    const msg = document.getElementById('pw-message');
+    if (!u || !p) { msg.textContent = 'Fill in all fields.'; msg.style.color = '#d44'; msg.style.display = 'block'; return; }
+    if (p !== cp)  { msg.textContent = 'Passwords do not match.'; msg.style.color = '#d44'; msg.style.display = 'block'; return; }
+    storedCreds = { username: u, password: p };
+    localStorage.setItem(ADMIN_CREDS_KEY, JSON.stringify(storedCreds));
+    msg.textContent = 'Credentials updated successfully.';
+    msg.style.color = 'var(--gold)';
+    msg.style.display = 'block';
+    showToast('Credentials saved!');
+  }
+
+  function resetFlags() {
+    if (!confirm('Reset all feature flags to default?')) return;
+    localStorage.removeItem('adminFlags');
+    adminFlags = { ...DEFAULT_ADMIN_FLAGS };
+    saveFlags();
+    applyFlags();
+    syncToggleUI();
+    showToast('Flags reset to defaults.');
+  }
+
+  function clearLibrary() {
+    if (!confirm('This will remove ALL videos from the library. Are you sure?')) return;
+    localStorage.removeItem('videoLibrary');
+    renderVideoTable();
+    renderRecentUploads();
+    updateStats();
+    showToast('Library cleared.');
+  }
+
+  // Override addVideo to also update stats
+  const _origAdd = addVideo;
+  function addVideo(entry) {
+    _origAdd(entry);
+    renderRecentUploads();
+  }
+</script>
+</body>
+</html>

@@ -50,13 +50,13 @@
 ═══════════════════════════════════════════════════════════ -->
 <section id="home" class="hero">
   <div class="hero-bg">
-    <video src="assets/0331.mp4" autoplay loop muted playsinline></video>
+    <video src="assets/featured-video.mp4" autoplay loop muted playsinline></video>
     <div></div><!-- overlay via ::after -->
   </div>
   <div class="hero-content">
     <div class="hero-eyebrow">Exclusive Adult Content</div>
     <h1>Immerse Yourself<br>in <em>Pure Luxury</em></h1>
-    <p>Premium Ebony Foot Fetish content in stunning 360° VR. Curated for the distinguished viewer.</p>
+    <p>Premium Ebony Foot Fetish content in stunning 360° VR. Curated for the discerning viewer.</p>
     <div class="hero-actions">
       <a href="#vr-preview" class="btn btn-gold">
         <svg viewBox="0 0 24 24" style="width:16px;fill:currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
@@ -86,9 +86,9 @@
     <div class="gallery-grid">
 
       <!-- FREE PREVIEW CLIP 1 -->
-      <div class="clip-card reveal" onclick="openPlayer('assets/0331.mp4', 'Velvet Twilight', false)">
+      <div class="clip-card reveal" onclick="openPlayer('assets/video1.mp4', 'Velvet Twilight', false)">
         <span class="clip-badge preview">Preview</span>
-        <video src="assets/0331.mp4" muted loop preload="none"></video>
+        <video src="assets/video1.mp4" muted loop preload="none"></video>
         <div class="play-btn-overlay">
           <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
         </div>
@@ -104,9 +104,9 @@
       </div>
 
       <!-- FREE PREVIEW CLIP 2 -->
-      <div class="clip-card reveal" onclick="openPlayer('assets/0331(1).mp4', 'Obsidian Grace', false)">
+      <div class="clip-card reveal" onclick="openPlayer('assets/video2.mp4', 'Obsidian Grace', false)">
         <span class="clip-badge preview">Preview</span>
-        <video src="assets/0331(1).mp4" muted loop preload="none"></video>
+        <video src="assets/video2.mp4" muted loop preload="none"></video>
         <div class="play-btn-overlay">
           <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
         </div>
@@ -124,7 +124,7 @@
       <!-- LOCKED PREMIUM 1 -->
       <div class="clip-card locked reveal" onclick="openPaywall()">
         <span class="clip-badge locked">Premium</span>
-        <video src="assets/0331(2).mp4" muted loop preload="none"></video>
+        <video src="assets/video3.mp4" muted loop preload="none"></video>
         <div class="play-btn-overlay">
           <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
         </div>
@@ -147,7 +147,7 @@
       <div class="clip-card locked reveal" onclick="openPaywall()">
         <span class="clip-badge vr">VR 360°</span>
         <span class="clip-badge locked" style="top:2.5rem">Premium</span>
-        <video src="assets/0331(5).mp4" muted loop preload="none"></video>
+        <video src="assets/vr-thumb.mp4" muted loop preload="none"></video>
         <div class="play-btn-overlay">
           <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
         </div>
@@ -169,7 +169,7 @@
       <!-- LOCKED PREMIUM 2 -->
       <div class="clip-card locked reveal" onclick="openPaywall()">
         <span class="clip-badge locked">Premium</span>
-        <video src="assets/0331(3).mp4" muted loop preload="none"></video>
+        <video src="assets/video5.mp4" muted loop preload="none"></video>
         <div class="play-btn-overlay">
           <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
         </div>
@@ -210,6 +210,9 @@
         </div>
       </div>
 
+      <!-- ↓ Admin-uploaded videos render here automatically ↓ -->
+      <div id="dynamic-gallery" class="gallery-grid" style="margin-top:1.5rem"></div>
+
     </div><!-- /gallery-grid -->
   </div>
 </section>
@@ -221,7 +224,7 @@
   <div class="container">
     <div class="section-header reveal">
       <span class="section-label">Immersive Experience</span>
-      <h2>360° VR Preview</h2>
+      <h2>180° VR Preview</h2>
       <div class="gold-line"></div>
       <p>Put on a VR headset or use your device to explore our immersive content.</p>
     </div>
@@ -263,12 +266,29 @@
           </video>
         </a-assets>
 
-        <!-- 360° Video Sphere -->
-        <a-videosphere
+        <!--
+          180° Half-Sphere VR Screen
+          Uses a sphere with phiLength:180 and thetaLength:180 so only
+          the front hemisphere is rendered. The video UV mapping fills
+          the visible half exactly for standard 180° SBS or mono VR footage.
+          side:back ensures the texture is visible from inside the sphere.
+        -->
+        <a-entity
           id="video-sphere"
-          src="#preview-video"
-          rotation="0 -90 0">
-        </a-videosphere>
+          geometry="primitive: sphere;
+                    radius: 100;
+                    segmentsWidth: 64;
+                    segmentsHeight: 32;
+                    phiStart: 0;
+                    phiLength: 360;
+                    thetaStart: 0;
+                    thetaLength: 180"
+          material="src: #preview-video;
+                    shader: flat;
+                    side: back;
+                    npot: true"
+          rotation="0 90 0">
+        </a-entity>
 
         <!-- Spatial Audio -->
         <a-entity
@@ -280,7 +300,7 @@
         <!-- Camera with gaze cursor -->
         <a-camera
           position="0 1.6 0"
-          look-controls="gyroEnabled: true; touchEnabled: true"
+          look-controls="gyroEnabled: true; touchEnabled: true; reverseTouchDrag: false"
           wasd-controls-enabled="false">
           <a-cursor
             color="#c9a84c"
@@ -293,54 +313,30 @@
 
         <!-- Floating VR UI Panel -->
         <a-entity id="ui-panel" position="0 0.8 -2.2">
-          <a-plane width="2.2" height="0.55" color="#0e0e0f" opacity="0.9" corner-radius="0.06"></a-plane>
+          <a-plane width="2.2" height="0.55" color="#0e0e0f" opacity="0.9"></a-plane>
 
           <!-- Play/Pause -->
-          <a-text
-            value="⏯"
-            position="-0.8 0 0.02"
-            color="#c9a84c"
-            font="mozillavr"
-            width="3"
-            align="center"
-            class="clickable"
-            onclick="toggleVideo()">
+          <a-text value="⏯" position="-0.8 0 0.02" color="#c9a84c"
+            font="mozillavr" width="3" align="center"
+            class="clickable" onclick="toggleVideo()">
           </a-text>
 
           <!-- Mute -->
-          <a-text
-            value="🔊"
-            position="-0.27 0 0.02"
-            color="#9b68d4"
-            font="mozillavr"
-            width="3"
-            align="center"
-            class="clickable"
-            onclick="toggleMute()">
+          <a-text value="🔊" position="-0.27 0 0.02" color="#9b68d4"
+            font="mozillavr" width="3" align="center"
+            class="clickable" onclick="toggleMute()">
           </a-text>
 
           <!-- Recenter -->
-          <a-text
-            value="⟳"
-            position="0.27 0 0.02"
-            color="#c9a84c"
-            font="mozillavr"
-            width="3"
-            align="center"
-            class="clickable"
-            onclick="recenterView()">
+          <a-text value="⟳" position="0.27 0 0.02" color="#c9a84c"
+            font="mozillavr" width="3" align="center"
+            class="clickable" onclick="recenterView()">
           </a-text>
 
           <!-- Fullscreen -->
-          <a-text
-            value="⛶"
-            position="0.8 0 0.02"
-            color="#998e7a"
-            font="mozillavr"
-            width="3"
-            align="center"
-            class="clickable"
-            onclick="enterVRFullscreen()">
+          <a-text value="⛶" position="0.8 0 0.02" color="#998e7a"
+            font="mozillavr" width="3" align="center"
+            class="clickable" onclick="enterVRFullscreen()">
           </a-text>
         </a-entity>
 
@@ -348,7 +344,7 @@
     </div><!-- /vr-wrapper -->
 
     <p style="text-align:center;margin-top:1.5rem;font-size:0.72rem;letter-spacing:0.1em;color:var(--text-muted)">
-      Works best with a VR headset · Also compatible with mobile gyroscope
+      180° format · Works best with a VR headset · Also compatible with mobile gyroscope
     </p>
   </div>
 </section>

@@ -297,13 +297,85 @@ function formatTime(s) {
   return `${m}:${sec}`;
 }
 
-/* ── Gallery hover-play ────────────────────────────────────── */
+/* ── Gallery — dynamic render from localStorage ────────────── */
 function initGallery() {
+  renderDynamicGallery();
+  // Also wire hover-play on any static hardcoded cards
+  attachGalleryHover();
+}
+
+function attachGalleryHover() {
   document.querySelectorAll('.clip-card video').forEach(v => {
     const card = v.closest('.clip-card');
-    card?.addEventListener('mouseenter', () => v.play().catch(() => {}));
-    card?.addEventListener('mouseleave', () => { v.pause(); v.currentTime = 0; });
+    if (card && !card.dataset.hoverBound) {
+      card.dataset.hoverBound = '1';
+      card.addEventListener('mouseenter', () => v.play().catch(() => {}));
+      card.addEventListener('mouseleave', () => { v.pause(); v.currentTime = 0; });
+    }
   });
+}
+
+function renderDynamicGallery() {
+  const container = document.getElementById('dynamic-gallery');
+  if (!container) return;
+
+  const lib = getVideoLibrary();
+  if (!lib.length) {
+    container.innerHTML = '';
+    return;
+  }
+
+  container.innerHTML = lib.map(v => {
+    const isLocked  = v.access === 'premium';
+    const isVR      = v.type   === 'vr';
+    const onclick   = isLocked
+      ? `onclick="openPaywall()"`
+      : `onclick="openPlayer('${escHtml(v.url)}','${escHtml(v.title)}',false)"`;
+
+    const lockOverlay = isLocked ? `
+      <div class="lock-overlay">
+        <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+        <span>Members Only</span>
+      </div>` : '';
+
+    const vrBadge     = isVR     ? `<span class="clip-badge vr">VR 180°</span>` : '';
+    const accessBadge = isLocked
+      ? `<span class="clip-badge locked">Premium</span>`
+      : `<span class="clip-badge preview">Preview</span>`;
+
+    const actionBtn = isLocked
+      ? `<button class="btn btn-violet" style="padding:0.4rem 1rem;font-size:0.62rem">Unlock</button>`
+      : `<button class="btn btn-gold"   style="padding:0.4rem 1rem;font-size:0.62rem">Play</button>`;
+
+    const duration = v.duration ? ` · ${escHtml(v.duration)}` : '';
+
+    // Use thumbnail if provided, otherwise a video preview element
+    const mediaEl = v.thumb
+      ? `<img src="${escHtml(v.thumb)}" alt="${escHtml(v.title)}" style="width:100%;height:100%;object-fit:cover;display:block;">`
+      : `<video src="${escHtml(v.url)}" muted loop preload="none" style="width:100%;height:100%;object-fit:cover;display:block;"></video>`;
+
+    return `
+      <div class="clip-card${isLocked ? ' locked' : ''} reveal" ${onclick}>
+        ${vrBadge}
+        ${accessBadge}
+        ${mediaEl}
+        <div class="play-btn-overlay">
+          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </div>
+        ${lockOverlay}
+        <div class="clip-overlay">
+          <div>
+            <div class="clip-title">${escHtml(v.title)}</div>
+            <div class="clip-meta">${isVR ? 'VR 180°' : '2D'}${duration} · ${isLocked ? 'Premium' : 'Free Preview'}</div>
+            <div class="clip-actions">${actionBtn}</div>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+
+  // Re-init reveal observer and hover-play for newly injected cards
+  initReveal();
+  attachGalleryHover();
 }
 
 /* ── Admin Login ───────────────────────────────────────────── */

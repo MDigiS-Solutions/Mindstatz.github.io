@@ -6,6 +6,14 @@
   <title>Mindstatz — Admin Dashboard</title>
   <meta name="robots" content="noindex, nofollow">
   <link rel="stylesheet" href="styles.css">
+  <!-- Supabase JS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <!-- Credentials -->
+  <script>
+    window.SUPABASE_URL  = 'https://YOUR_PROJECT_REF.supabase.co';
+    window.SUPABASE_ANON = 'YOUR_ANON_PUBLIC_KEY';
+  </script>
+  <script src="api.js"></script>
   <style>
     /* Admin-only extras */
     body { cursor: default; }
@@ -98,34 +106,45 @@
 </head>
 <body>
 
-<!-- LOGIN SCREEN -->
-<div id="admin-login-screen" class="admin-login-screen">
-  <div class="admin-login-box">
-    <div style="text-align:center;margin-bottom:2.5rem">
-      <div class="nav-logo" style="font-size:1.8rem;display:block;margin-bottom:0.5rem">Mindstatz</div>
-      <div class="gold-line"></div>
-      <span class="section-label">Admin Dashboard</span>
+<!-- AES Key Rehydration Modal — shown when session exists but key not in memory -->
+<div id="rehydrate-modal" style="
+  display:none; position:fixed; inset:0; z-index:99996;
+  background:rgba(8,8,8,0.96); backdrop-filter:blur(20px);
+  align-items:center; justify-content:center;
+">
+  <div class="admin-login-box" style="text-align:center">
+    <div style="
+      width:64px;height:64px;background:rgba(107,63,160,0.15);
+      border:1px solid rgba(107,63,160,0.4);border-radius:50%;
+      display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;
+    ">
+      <svg viewBox="0 0 24 24" style="width:28px;fill:var(--violet-light)"><path d="M12.65 10C11.83 7.67 9.61 6 7 6c-3.31 0-6 2.69-6 6s2.69 6 6 6c2.61 0 4.83-1.67 5.65-4H17v4h4v-4h2v-4H12.65zM7 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>
     </div>
-    <form onsubmit="handleAdminLogin(event)">
-      <label class="admin-label">Username</label>
-      <input type="text" id="login-user" class="admin-input" placeholder="Enter username" autocomplete="username" required>
-      <label class="admin-label">Password</label>
-      <input type="password" id="login-pass" class="admin-input" placeholder="Enter password" autocomplete="current-password" required>
-      <div id="login-error" style="display:none;color:#d44;font-size:0.72rem;margin-bottom:0.75rem;letter-spacing:0.05em;text-align:center"></div>
-      <button type="submit" class="btn btn-gold" style="width:100%;justify-content:center;margin-top:0.5rem">
-        Sign In
+    <span class="section-label">Security</span>
+    <h3 style="font-size:1.6rem;margin-bottom:0.5rem">Unlock Dashboard</h3>
+    <p style="margin-bottom:2rem;font-size:0.85rem">
+      Enter your admin password to derive the AES-256 decryption key.<br>
+      <span style="color:var(--text-muted);font-size:0.72rem">Your password never leaves this device.</span>
+    </p>
+    <form onsubmit="rehydrateKey(event)">
+      <input type="password" id="rehydrate-pw" class="admin-input"
+        placeholder="Admin password" required autocomplete="current-password">
+      <div id="rehydrate-error" style="display:none;color:#d44;font-size:0.72rem;margin-bottom:0.75rem"></div>
+      <button type="submit" id="rehydrate-btn" class="btn btn-gold" style="width:100%;justify-content:center">
+        Unlock Dashboard
       </button>
     </form>
-    <div style="text-align:center;margin-top:1.5rem">
-      <a href="index.html" style="font-size:0.68rem;color:var(--text-muted);letter-spacing:0.1em;text-transform:uppercase">
-        ← Return to Site
+    <div style="margin-top:1.5rem">
+      <a href="#" onclick="Auth.signOut().then(()=>window.location.href='index.html')"
+        style="font-size:0.68rem;color:var(--text-muted);letter-spacing:0.1em;text-transform:uppercase">
+        Sign out instead
       </a>
     </div>
   </div>
 </div>
 
 <!-- ADMIN PANEL -->
-<div id="admin-panel" class="admin-panel admin-layout">
+<div id="admin-panel" class="admin-layout">
 
   <!-- Sidebar -->
   <aside class="admin-sidebar">
@@ -501,187 +520,76 @@
   </main>
 </div><!-- /admin-panel -->
 
+
 <script src="app.js"></script>
 <script>
-  /* ── Admin Page Init ── */
-  const ADMIN_CREDS_KEY = 'adminCredentials';
-  let storedCreds = JSON.parse(localStorage.getItem(ADMIN_CREDS_KEY)) || { username: 'admin', password: 'mindstatz2024' };
-
-  function handleAdminLogin(e) {
-    e.preventDefault();
-    const u = document.getElementById('login-user').value;
-    const p = document.getElementById('login-pass').value;
-    if (u === storedCreds.username && p === storedCreds.password) {
-      localStorage.setItem('adminAuthed', 'true');
-      document.getElementById('admin-login-screen').style.display = 'none';
-      document.getElementById('admin-panel').classList.add('visible');
-      initAdminPage();
-    } else {
-      const err = document.getElementById('login-error');
-      err.textContent = 'Invalid username or password.';
-      err.style.display = 'block';
-      const box = document.querySelector('.admin-login-box');
-      box.classList.add('shake');
-      setTimeout(() => box.classList.remove('shake'), 500);
-    }
-  }
-
-  function adminLogout() {
-    localStorage.removeItem('adminAuthed');
-    location.reload();
-  }
-
-  function initAdminPage() {
-    updateStats();
-    updateClock();
-    setInterval(updateClock, 1000);
-    applyFlags();
-    initThemeControls();
-    renderVideoTable();
-    initUploadForm();
-    renderRecentUploads();
-    syncToggleUI();
-
-    // Restore saved bg option
-    const saved = adminFlags.bgStyle || 'void';
-    document.querySelectorAll('.bg-option').forEach(o => {
-      o.classList.toggle('active', o.dataset.bg === saved);
-    });
-
-    // Color picker sync
+  // Wire color picker inputs to stay in sync
+  document.addEventListener('DOMContentLoaded', () => {
     const cp = document.getElementById('custom-color-picker');
     const ci = document.getElementById('custom-color-input');
     if (cp && ci) {
-      cp.value = adminFlags.accentColor || '#c9a84c';
-      ci.value = adminFlags.accentColor || '#c9a84c';
       cp.addEventListener('input', () => { ci.value = cp.value; });
+      ci.addEventListener('input', () => { if (ci.value.match(/^#[0-9a-fA-F]{6}$/)) cp.value = ci.value; });
+    }
+  });
+
+  // Update Supabase auth password
+  async function updateCredentials() {
+    const newPw  = document.getElementById('new-password')?.value;
+    const confPw = document.getElementById('confirm-password')?.value;
+    const msg    = document.getElementById('pw-message');
+    if (!newPw) {
+      msg.textContent = 'Enter a new password.';
+      msg.style.color = '#d44'; msg.style.display = 'block'; return;
+    }
+    if (newPw !== confPw) {
+      msg.textContent = 'Passwords do not match.';
+      msg.style.color = '#d44'; msg.style.display = 'block'; return;
+    }
+    try {
+      const sb = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON);
+      const { error } = await sb.auth.updateUser({ password: newPw });
+      if (error) throw error;
+      msg.textContent = 'Password updated. Re-login to refresh your decryption key.';
+      msg.style.color = 'var(--gold)'; msg.style.display = 'block';
+      showToast('Password updated successfully!');
+    } catch (err) {
+      msg.textContent = err.message;
+      msg.style.color = '#d44'; msg.style.display = 'block';
     }
   }
 
-  // Auto-login if already authed
-  if (localStorage.getItem('adminAuthed') === 'true') {
-    document.getElementById('admin-login-screen').style.display = 'none';
-    document.getElementById('admin-panel').classList.add('visible');
-    document.addEventListener('DOMContentLoaded', initAdminPage);
+  // Reset all site config to defaults
+  async function resetFlags() {
+    if (!confirm('Reset all site config to defaults?')) return;
+    try {
+      await window.MindstatzAPI.Config.setMany({
+        accentColor:    '#c9a84c',
+        bgStyle:        'void',
+        paywallEnabled: 'true',
+        uiControls:     'true',
+        spatialAudio:   'true'
+      });
+      showToast('Config reset to defaults.');
+      await loadConfigToUI();
+    } catch (err) { showToast(err.message, 'error'); }
   }
 
-  function showSection(name, el) {
-    document.querySelectorAll('.admin-section').forEach(s => s.style.display = 'none');
-    document.getElementById('sec-' + name).style.display = 'block';
-    document.querySelectorAll('.admin-nav-item').forEach(a => a.classList.remove('active'));
-    if (el) el.classList.add('active');
-    const titles = { overview: 'Overview', upload: 'Upload Videos', library: 'Video Library', theme: 'Theme & Colors', flags: 'Site Flags' };
-    document.getElementById('section-title').textContent = titles[name] || name;
-    return false;
+  // Permanently delete all videos from DB
+  async function clearLibrary() {
+    if (!confirm('Remove ALL videos permanently from the database? This cannot be undone.')) return;
+    try {
+      const rows = await window.MindstatzAPI.Videos.list();
+      await Promise.all(rows.map(r => window.MindstatzAPI.Videos.remove(r.id)));
+      await renderVideoTable();
+      showToast('All videos removed from database.');
+    } catch (err) { showToast(err.message, 'error'); }
   }
 
-  function updateStats() {
-    const lib = getVideoLibrary();
-    document.getElementById('stat-videos').textContent  = lib.length;
-    document.getElementById('stat-vr').textContent      = lib.filter(v => v.type === 'vr').length;
-    document.getElementById('stat-premium').textContent = lib.filter(v => v.access === 'premium').length;
-    document.getElementById('stat-free').textContent    = lib.filter(v => v.access === 'free').length;
-  }
-
-  function updateClock() {
-    const el = document.getElementById('admin-time');
-    if (el) el.textContent = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-  }
-
-  function renderRecentUploads() {
-    const el = document.getElementById('recent-uploads-list');
-    if (!el) return;
-    const lib = getVideoLibrary().slice(0, 4);
-    if (!lib.length) { el.innerHTML = '<p style="color:var(--text-muted);font-size:0.8rem">No videos yet.</p>'; return; }
-    el.innerHTML = lib.map(v => `
-      <div style="display:flex;align-items:center;gap:1rem;padding:0.6rem 0;border-bottom:1px solid var(--border)">
-        <div style="width:40px;height:28px;background:var(--bg-elevated);border-radius:4px;flex-shrink:0"></div>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:0.82rem;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(v.title)}</div>
-          <div style="font-size:0.65rem;color:var(--text-muted);letter-spacing:0.08em;text-transform:uppercase">${v.type} · ${v.access}</div>
-        </div>
-        <span class="clip-badge ${v.access}" style="flex-shrink:0">${v.access}</span>
-      </div>
-    `).join('');
-    updateStats();
-  }
-
-  function selectBg(style, el) {
-    document.querySelectorAll('.bg-option').forEach(o => o.classList.remove('active'));
-    el.classList.add('active');
-    adminFlags.bgStyle = style;
-    saveFlags();
-    applyBgStyle(style);
-  }
-
-  function applyCustomColor() {
-    const cp = document.getElementById('custom-color-picker');
-    const ci = document.getElementById('custom-color-input');
-    const color = ci.value || cp.value;
-    if (!color.match(/^#[0-9a-fA-F]{3,6}$/)) {
-      showToast('Enter a valid hex color like #d4a853', 'error');
-      return;
-    }
-    adminFlags.accentColor = color;
-    saveFlags();
-    applyFlags();
-    showToast('Accent color updated!');
-  }
-
-  function saveHeroText() {
-    const h = document.getElementById('hero-headline').value;
-    const s = document.getElementById('hero-sub').value;
-    localStorage.setItem('heroHeadline', h);
-    localStorage.setItem('heroSub', s);
-    showToast('Hero text saved! Reflected on next site load.');
-  }
-
-  function syncToggleUI() {
-    document.querySelectorAll('.admin-toggle-input').forEach(input => {
-      const flag = input.dataset.flag;
-      if (flag !== undefined) input.checked = !!adminFlags[flag];
-    });
-  }
-
-  function updateCredentials() {
-    const u  = document.getElementById('new-username').value.trim();
-    const p  = document.getElementById('new-password').value;
-    const cp = document.getElementById('confirm-password').value;
-    const msg = document.getElementById('pw-message');
-    if (!u || !p) { msg.textContent = 'Fill in all fields.'; msg.style.color = '#d44'; msg.style.display = 'block'; return; }
-    if (p !== cp)  { msg.textContent = 'Passwords do not match.'; msg.style.color = '#d44'; msg.style.display = 'block'; return; }
-    storedCreds = { username: u, password: p };
-    localStorage.setItem(ADMIN_CREDS_KEY, JSON.stringify(storedCreds));
-    msg.textContent = 'Credentials updated successfully.';
-    msg.style.color = 'var(--gold)';
-    msg.style.display = 'block';
-    showToast('Credentials saved!');
-  }
-
-  function resetFlags() {
-    if (!confirm('Reset all feature flags to default?')) return;
-    localStorage.removeItem('adminFlags');
-    adminFlags = { ...DEFAULT_ADMIN_FLAGS };
-    saveFlags();
-    applyFlags();
-    syncToggleUI();
-    showToast('Flags reset to defaults.');
-  }
-
-  function clearLibrary() {
-    if (!confirm('This will remove ALL videos from the library. Are you sure?')) return;
-    localStorage.removeItem('videoLibrary');
-    renderVideoTable();
-    renderRecentUploads();
-    updateStats();
-    showToast('Library cleared.');
-  }
-
-  // Override addVideo to also update stats
-  const _origAdd = addVideo;
-  function addVideo(entry) {
-    _origAdd(entry);
-    renderRecentUploads();
+  // Logout
+  async function adminLogout() {
+    try { await window.MindstatzAPI.Auth.signOut(); } catch(_) {}
+    window.location.href = 'index.html';
   }
 </script>
 </body>

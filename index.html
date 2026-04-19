@@ -7,8 +7,18 @@
   <meta name="description" content="Explore high-quality Ebony Foot Fetish VR videos in a modern and immersive experience, exclusively on Mindstatz.">
   <meta name="robots" content="noindex, nofollow">
   <link rel="stylesheet" href="styles.css">
+  <!-- Supabase JS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <!-- A-Frame -->
   <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
+  <!-- Mindstatz Crypto + API layer — must load before app.js -->
+  <script>
+    // ── Paste your Supabase credentials here ──────────────────
+    window.SUPABASE_URL  = 'https://YOUR_PROJECT_REF.supabase.co';
+    window.SUPABASE_ANON = 'YOUR_ANON_PUBLIC_KEY';
+    // ──────────────────────────────────────────────────────────
+  </script>
+  <script src="api.js"></script>
 </head>
 <body>
 
@@ -38,7 +48,9 @@
     <li><a href="#gallery">Gallery</a></li>
     <li><a href="#vr-preview">VR Preview</a></li>
     <li><a href="#contact">Contact</a></li>
-    <li><a href="admin.html" class="btn btn-outline" style="padding:0.45rem 1.2rem">Admin</a></li>
+    <li data-auth="guest"><a href="#" onclick="openAuthModal('signin')" class="btn btn-outline" style="padding:0.45rem 1.2rem">Sign In</a></li>
+    <li data-auth="member" style="display:none"><a href="#" onclick="handleSignOut()" class="btn btn-ghost" style="padding:0.45rem 1.2rem">Sign Out</a></li>
+    <li data-auth="admin" style="display:none"><a href="admin.html" class="btn btn-gold" style="padding:0.45rem 1.2rem">Dashboard</a></li>
   </ul>
   <button class="burger" aria-label="Menu">
     <span></span><span></span><span></span>
@@ -56,7 +68,7 @@
   <div class="hero-content">
     <div class="hero-eyebrow">Exclusive Adult Content</div>
     <h1>Immerse Yourself<br>in <em>Pure Luxury</em></h1>
-    <p>Premium Ebony Foot Fetish content in stunning 180° VR. Curated for the distinguished viewer.</p>
+    <p>Premium Ebony Foot Fetish content in stunning 360° VR. Curated for the discerning viewer.</p>
     <div class="hero-actions">
       <a href="#vr-preview" class="btn btn-gold">
         <svg viewBox="0 0 24 24" style="width:16px;fill:currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
@@ -442,29 +454,48 @@
   </div>
 </section>
 
-<!-- Admin Login (inline, on same page) -->
-<section id="admin-login" class="section" style="padding:4rem">
-  <div class="container" style="max-width:440px;margin:0 auto">
-    <div class="admin-login-box">
-      <div style="text-align:center;margin-bottom:2rem">
-        <span class="nav-logo" style="font-size:1.5rem">Mindstatz</span>
-        <div class="gold-line"></div>
-        <span class="section-label">Admin Access</span>
-        <h3>Sign In</h3>
+<!-- ═══════════════════════════════════════════════════════════
+     AUTH MODAL — Sign In / Sign Up
+═══════════════════════════════════════════════════════════ -->
+<div id="auth-modal" style="
+  display:none; position:fixed; inset:0; z-index:9991;
+  background:rgba(8,8,8,0.92); backdrop-filter:blur(16px);
+  align-items:center; justify-content:center;
+">
+  <div style="
+    background:var(--bg-card); border:1px solid var(--border);
+    border-radius:var(--radius-lg); padding:3rem 2.5rem;
+    width:100%; max-width:420px; box-shadow:var(--glow-violet);
+    position:relative;
+  ">
+    <button onclick="closeAuthModal()" style="
+      position:absolute; top:1rem; right:1rem;
+      background:none; border:none; color:var(--text-muted);
+      font-size:1.4rem; cursor:pointer; line-height:1; padding:0.25rem;
+    ">×</button>
+
+    <div style="text-align:center; margin-bottom:2rem">
+      <span class="nav-logo" style="font-size:1.5rem; display:block; margin-bottom:0.5rem">Mindstatz</span>
+      <div class="gold-line"></div>
+      <h3 id="auth-modal-title" style="font-size:1.6rem">Sign In</h3>
+    </div>
+
+    <form onsubmit="submitAuth(event)">
+      <div class="form-group" style="margin-bottom:1rem">
+        <input type="email" id="auth-email" class="admin-input" placeholder="Email address" required autocomplete="email">
       </div>
-      <form onsubmit="adminLogin(event)">
-        <div class="form-group">
-          <input type="text" id="admin-user" class="admin-input" placeholder="Username" required autocomplete="username">
-        </div>
-        <div class="form-group">
-          <input type="password" id="admin-pass" class="admin-input" placeholder="Password" required autocomplete="current-password">
-        </div>
-        <div id="login-error" style="display:none;color:#d44;font-size:0.75rem;margin-bottom:0.75rem;letter-spacing:0.05em"></div>
-        <button type="submit" class="btn btn-gold" style="width:100%;justify-content:center">Enter Dashboard</button>
-      </form>
+      <div class="form-group" style="margin-bottom:1rem">
+        <input type="password" id="auth-password" class="admin-input" placeholder="Password" required autocomplete="current-password">
+      </div>
+      <div id="auth-error" style="display:none;color:#d44;font-size:0.75rem;margin-bottom:0.75rem;letter-spacing:0.05em;text-align:center"></div>
+      <button type="submit" id="auth-submit-btn" class="btn btn-gold" style="width:100%;justify-content:center;">Sign In</button>
+    </form>
+
+    <div id="auth-toggle-text" style="text-align:center;margin-top:1.25rem;font-size:0.75rem;color:var(--text-muted)">
+      No account? <a href="#" onclick="updateAuthModalUI('signup')" style="color:var(--gold)">Sign Up</a>
     </div>
   </div>
-</section>
+</div>
 
 <!-- Footer -->
 <footer>

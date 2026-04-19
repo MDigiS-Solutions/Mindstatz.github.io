@@ -59,7 +59,7 @@ Access the admin dashboard at: `/admin.html` or click **Admin** in the nav.
 
 | Feature | Description |
 |---|---|
-| **Upload Videos** | Add 2D regular or VR 360° videos with title, URL, access level |
+| **Upload Videos** | Add 2D regular or VR 180° videos with title, URL, access level |
 | **Video Library** | View and remove all uploaded videos |
 | **Theme & Colors** | Change accent color (preset swatches or custom hex), background style, hero text |
 | **Site Flags** | Toggle paywall, VR UI controls, spatial audio, iOS tweaks on/off |
@@ -76,7 +76,7 @@ Built with [A-Frame 1.3.0](https://aframe.io). The VR preview section uses a `<a
 - VR headset mode toggle
 - iOS autoplay unlock on first tap
 
-**VR video format:** Equirectangular 360° `.mp4`, ideally 4K (3840×1920) or 5.7K.
+**VR video format:** Equirectangular 180° `.mp4`, ideally 4K (3840×1920) or 5.7K.
 
 ---
 

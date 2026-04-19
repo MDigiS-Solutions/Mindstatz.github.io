@@ -7,14 +7,24 @@
 'use strict';
 
 // ── Supabase config ─────────────────────────────────────────
-// Replace these two values with your project's credentials.
-// Find them at: Supabase Dashboard → Project Settings → API
-const SUPABASE_URL    = window.SUPABASE_URL    || 'https://YOUR_PROJECT.supabase.co';
-const SUPABASE_ANON   = window.SUPABASE_ANON   || 'YOUR_ANON_PUBLIC_KEY';
+const SUPABASE_URL  = window.SUPABASE_URL  || '';
+const SUPABASE_ANON = window.SUPABASE_ANON || '';
 
-// Lazily initialised Supabase client (loaded from CDN in HTML)
+// Returns true only when real credentials have been set
+function _hasCredentials() {
+  return SUPABASE_URL.startsWith('https://') &&
+         !SUPABASE_URL.includes('YOUR_PROJECT') &&
+         SUPABASE_ANON.length > 20 &&
+         !SUPABASE_ANON.includes('YOUR_ANON');
+}
+
+// Lazily initialised Supabase client — safe-guarded
 let _sb = null;
 function sb() {
+  if (!_hasCredentials()) {
+    console.warn('[Mindstatz] Supabase credentials not configured. Backend features disabled.');
+    return null;
+  }
   if (!_sb) _sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
   return _sb;
 }
@@ -144,17 +154,15 @@ const Auth = {
   },
 
   // ── Sign in ───────────────────────────────────────────────
-  // For admins, also establishes the AES session key.
   async signIn(email, password) {
+    if (!sb()) throw new Error('Supabase not configured. Add your credentials to index.html.');
     const { data, error } = await sb().auth.signInWithPassword({ email, password });
     if (error) throw error;
 
     const profile = await Auth.getProfile(data.user.id);
 
     if (profile.role === 'admin') {
-      // Derive AES key from password + UUID
       await establishSessionKey(password, data.user.id);
-      // Store SHA-256 of admin password in profile for verification
       const pwHash = await sha256(password + data.user.id);
       await sb().from('profiles')
         .update({ pw_hash: pwHash })
@@ -167,6 +175,7 @@ const Auth = {
 
   // ── Sign out ──────────────────────────────────────────────
   async signOut() {
+    if (!sb()) { clearSessionKey(); return; }
     await logEvent('logout', {});
     clearSessionKey();
     const { error } = await sb().auth.signOut();
@@ -175,18 +184,21 @@ const Auth = {
 
   // ── Get current session ───────────────────────────────────
   async getSession() {
+    if (!sb()) return null;
     const { data: { session } } = await sb().auth.getSession();
     return session;
   },
 
   // ── Get current user ──────────────────────────────────────
   async getUser() {
+    if (!sb()) return null;
     const { data: { user } } = await sb().auth.getUser();
     return user;
   },
 
   // ── Get profile row ───────────────────────────────────────
   async getProfile(userId) {
+    if (!sb()) return null;
     const { data, error } = await sb()
       .from('profiles')
       .select('*')
@@ -205,7 +217,6 @@ const Auth = {
   },
 
   // ── Re-establish session key after page reload ────────────
-  // Call on admin page load: prompt for password to re-derive key
   async rehydrateKey(password) {
     const user = await Auth.getUser();
     if (!user) throw new Error('Not authenticated');
@@ -414,6 +425,7 @@ const Config = {
 
   // ── Load all config into an object ───────────────────────
   async getAll() {
+    if (!sb()) return {};
     const { data, error } = await sb().from('site_config').select('key, value');
     if (error) throw error;
     return Object.fromEntries((data || []).map(r => [r.key, r.value]));
@@ -421,6 +433,7 @@ const Config = {
 
   // ── Set a single key (admin only) ────────────────────────
   async set(key, value) {
+    if (!sb()) throw new Error('Supabase not configured.');
     const user = await Auth.getUser();
     const { error } = await sb().from('site_config').upsert({
       key,

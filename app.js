@@ -11,18 +11,27 @@ let _currentUser    = null;
 let _currentProfile = null;
 let _siteConfig     = {};
 
-document.addEventListener('DOMContentLoaded', async () => {
+// ── Age gate fires IMMEDIATELY — never waits on Supabase ─────
+// This runs synchronously as soon as the DOM is ready,
+// completely independent of auth/config fetches.
+document.addEventListener('DOMContentLoaded', () => {
+  initAgeGate();
   initCursor();
   initNav();
-  initAgeGate();
+}, { once: true });
 
+document.addEventListener('DOMContentLoaded', async () => {
+  // Load site config (falls back to defaults if Supabase not set up)
   await loadSiteConfig();
 
-  const session = await Auth.getSession();
-  if (session?.user) {
-    _currentUser    = session.user;
-    _currentProfile = await Auth.getProfile(session.user.id);
-  }
+  // Restore session — safe-guarded: returns null if no credentials
+  try {
+    const session = await Auth.getSession();
+    if (session?.user) {
+      _currentUser    = session.user;
+      _currentProfile = await Auth.getProfile(session.user.id);
+    }
+  } catch (_) { /* Supabase not configured yet — ignore */ }
 
   updateAuthUI();
   initReveal();
@@ -682,11 +691,35 @@ function initNav() {
 }
 
 function initAgeGate() {
-  const gate = document.getElementById('age-gate');
+  const gate   = document.getElementById('age-gate');
+  const yesBtn = document.getElementById('age-yes');
+  const noBtn  = document.getElementById('age-no');
   if (!gate) return;
-  if (sessionStorage.getItem('ageVerified')) { gate.style.display='none'; return; }
-  document.getElementById('age-yes')?.addEventListener('click', ()=>{ sessionStorage.setItem('ageVerified','true'); gate.style.opacity='0'; gate.style.transition='opacity 0.6s'; setTimeout(()=>gate.remove(),600); });
-  document.getElementById('age-no')?.addEventListener('click', ()=>{ window.location.href='https://www.google.com'; });
+
+  // Already verified this session — hide immediately
+  if (sessionStorage.getItem('ageVerified') === 'true') {
+    gate.style.display = 'none';
+    return;
+  }
+
+  // Force the buttons to be clickable even under cursor:none CSS
+  if (yesBtn) yesBtn.style.cursor = 'pointer';
+  if (noBtn)  noBtn.style.cursor  = 'pointer';
+
+  function dismiss() {
+    sessionStorage.setItem('ageVerified', 'true');
+    gate.style.opacity    = '0';
+    gate.style.transition = 'opacity 0.6s ease';
+    gate.style.pointerEvents = 'none';
+    setTimeout(() => gate.remove(), 650);
+  }
+
+  yesBtn?.addEventListener('click', dismiss);
+  noBtn?.addEventListener('click',  () => { window.location.href = 'https://www.google.com'; });
+
+  // Fallback: also handle touch events directly for mobile
+  yesBtn?.addEventListener('touchend', e => { e.preventDefault(); dismiss(); });
+  noBtn?.addEventListener('touchend',  e => { e.preventDefault(); window.location.href = 'https://www.google.com'; });
 }
 
 function showSection(name, el) {

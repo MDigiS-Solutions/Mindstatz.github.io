@@ -580,15 +580,87 @@ function openPaywall() { if (!_currentUser) openAuthModal('signin'); }
 
 // ── Utilities ─────────────────────────────────────────────────
 function initCursor() {
-  const dot = document.querySelector('.cursor'), follower = document.querySelector('.cursor-follower');
-  if (!dot || !follower) return;
-  let mx=0,my=0,fx=0,fy=0;
-  document.addEventListener('mousemove', e => { mx=e.clientX; my=e.clientY; dot.style.transform=`translate(${mx-5}px,${my-5}px)`; });
-  (function loop(){ fx+=(mx-fx-18)*0.12; fy+=(my-fy-18)*0.12; follower.style.transform=`translate(${fx}px,${fy}px)`; requestAnimationFrame(loop); })();
-  document.querySelectorAll('a,button,.clip-card,.btn,input,textarea').forEach(el => {
-    el.addEventListener('mouseenter', ()=>{ follower.style.borderColor='rgba(201,168,76,0.9)'; });
-    el.addEventListener('mouseleave', ()=>{ follower.style.borderColor='rgba(201,168,76,0.5)'; });
+  const cursor   = document.querySelector('.cursor');
+  const follower = document.querySelector('.cursor-follower');
+  if (!cursor || !follower) return;
+
+  /* Skip on touch-only devices */
+  if (window.matchMedia('(hover: none) and (pointer: coarse)').matches) return;
+
+  let mouseX = 0, mouseY = 0;
+  let followerX = 0, followerY = 0;
+  let ticking = false;
+
+  /* ── Track mouse position ── */
+  document.addEventListener('mousemove', e => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+    /* Offset so the big-toe tip is the hotspot (top-center of foot) */
+    cursor.style.transform = `translate(${mouseX - 14}px, ${mouseY - 4}px)`;
+    if (!ticking) {
+      ticking = true;
+      requestAnimationFrame(animateFollower);
+    }
   });
+
+  /* ── Smooth follower loop ── */
+  function animateFollower() {
+    followerX += (mouseX - followerX - 24) * 0.1;
+    followerY += (mouseY - followerY - 24) * 0.1;
+    follower.style.transform = `translate(${followerX}px, ${followerY}px)`;
+    ticking = false;
+    requestAnimationFrame(animateFollower);
+  }
+  requestAnimationFrame(animateFollower);
+
+  /* ── Click states ── */
+  document.addEventListener('mousedown', () => {
+    cursor.classList.add('is-clicking');
+    cursor.classList.remove('is-hovering');
+  });
+  document.addEventListener('mouseup', () => {
+    cursor.classList.remove('is-clicking');
+  });
+
+  /* ── Hover states on interactive elements ── */
+  const hoverTargets = 'a, button, .clip-card, .btn, input, textarea, select, label, .admin-nav-item, .color-swatch, .bg-option, [onclick], [data-bg]';
+
+  function onEnter() {
+    cursor.classList.add('is-hovering');
+    follower.classList.add('is-hovering');
+  }
+  function onLeave() {
+    cursor.classList.remove('is-hovering');
+    follower.classList.remove('is-hovering');
+  }
+
+  /* Attach to existing elements */
+  document.querySelectorAll(hoverTargets).forEach(el => {
+    el.addEventListener('mouseenter', onEnter);
+    el.addEventListener('mouseleave', onLeave);
+  });
+
+  /* Watch for dynamically injected elements (gallery cards etc.) */
+  const mo = new MutationObserver(mutations => {
+    mutations.forEach(m => {
+      m.addedNodes.forEach(node => {
+        if (node.nodeType !== 1) return;
+        if (node.matches?.(hoverTargets)) {
+          node.addEventListener('mouseenter', onEnter);
+          node.addEventListener('mouseleave', onLeave);
+        }
+        node.querySelectorAll?.(hoverTargets).forEach(el => {
+          el.addEventListener('mouseenter', onEnter);
+          el.addEventListener('mouseleave', onLeave);
+        });
+      });
+    });
+  });
+  mo.observe(document.body, { childList: true, subtree: true });
+
+  /* ── Hide cursor when it leaves the window ── */
+  document.addEventListener('mouseleave', () => { cursor.style.opacity = '0'; follower.style.opacity = '0'; });
+  document.addEventListener('mouseenter', () => { cursor.style.opacity = '1'; follower.style.opacity = '1'; });
 }
 
 function initReveal() {

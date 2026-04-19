@@ -9,8 +9,8 @@
 // ── Supabase config ─────────────────────────────────────────
 // Replace these two values with your project's credentials.
 // Find them at: Supabase Dashboard → Project Settings → API
-const SUPABASE_URL    = window.SUPABASE_URL    || 'https://ihgafbmoyggubzmpyhnc.supabase.co';
-const SUPABASE_ANON   = window.SUPABASE_ANON   || 'sb_publishable_X4Ob-56hV1Evg6g0UupTtQ_UecJrT8k';
+const SUPABASE_URL    = window.SUPABASE_URL    || 'https://YOUR_PROJECT.supabase.co';
+const SUPABASE_ANON   = window.SUPABASE_ANON   || 'YOUR_ANON_PUBLIC_KEY';
 
 // Lazily initialised Supabase client (loaded from CDN in HTML)
 let _sb = null;
